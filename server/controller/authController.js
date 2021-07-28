@@ -8,6 +8,8 @@ const Queue = require("better-queue");
 const axios = require("axios");
 const { readTime } = require("./helper/readTime");
 
+//authentication done
+
 let articleCountAPI,
   infoCountAPI = null;
 
@@ -93,7 +95,7 @@ exports.loginPost = async (req, res) => {
     let user = await User.findOne({
       username,
     });
-    console.log(user);
+
     if (!user) {
       return res.status(422).json({
         message: "wrong Credentials",
