@@ -1,0 +1,8 @@
+/server/node_modules
+.idea
+/server/controller/testWindow
+/client/src/config.js
+.env
+
+/client/node_modules
+

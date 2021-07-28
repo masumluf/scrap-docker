@@ -1,0 +1,1 @@
+{"_id":{"$oid":"5f8b4fbeeee2b4519a7a7add"},"role":"admin","username":"masum.luf","password":"$2b$08$X2JJCMuEzosH2PhgSJtoy.Z0eWMsBylk9JSKcylAhArNVBDZCD8Ze","name":"Rezaul karim","checkSum":"ad587","createdAt":{"$date":"2020-10-17T20:10:38.365Z"},"updatedAt":{"$date":"2020-10-17T20:10:38.365Z"},"__v":0}

@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  server:
+    restart: always
+    build:
+      context: ./server
+      dockerfile: dockerfile
+    container_name: server
+    ports:
+      - "9000:9000"
+  client:
+    restart: always
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client
+    ports:
+      - "3000:3000"
+    stdin_open: true
