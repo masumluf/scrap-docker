@@ -1,3 +1,3 @@
-module.exports={
-    mongoURL:process.env.DB
-}
+module.exports = {
+  mongoURL: process.env.DBDEV,
+};

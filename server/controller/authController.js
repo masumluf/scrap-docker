@@ -81,6 +81,8 @@ const geoLocationTracking = async (ip) => {
 exports.loginPost = async (req, res) => {
   let { username, password, ip } = req.body;
 
+  console.log(req.body);
+
   try {
     if (!(await geoLocationTracking(ip))) {
       return res.status(404).json({
@@ -91,7 +93,7 @@ exports.loginPost = async (req, res) => {
     let user = await User.findOne({
       username,
     });
-    //console.log(ip);
+    console.log(user);
     if (!user) {
       return res.status(422).json({
         message: "wrong Credentials",
