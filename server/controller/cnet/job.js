@@ -28,7 +28,7 @@ async function cnet(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -41,16 +41,21 @@ async function cnet(io) {
         });
 
         console.log("collecting data from next tab..");
+        // console.log(newTab);
         const singleData = await newTab.evaluate(async () => {
           try {
             const regexBody = /(<([^>]+)>)|\n|\t|\s{2,}|"|'/gi;
             const body = document
               .querySelector(".article-main-body")
               ?.innerText.replace(regexBody, " ");
-            //const topic = document.querySelector(".text").innerText;
+            const images_url = document.querySelector("figure img").src;
+            //console.log();
+            const topic = document.querySelector(".text").innerText;
+            console.log("cnet log..");
             return {
               reading_time: body?.length || 400,
               topic,
+              images_url,
             };
           } catch (error) {
             console.log(error);
@@ -59,6 +64,7 @@ async function cnet(io) {
 
         result.published_at = sanitizeDate(result.published_at);
         // data storing to db
+        //console.log(singleData);
         q.push({
           ...result,
           ...singleData,
@@ -115,12 +121,12 @@ async function cnet(io) {
       let results = await page.evaluate(() => {
         return [
           ...document.querySelectorAll(
-            ".latestScrollContainer .item:not(.large)"
+            ".latestScrollContainer .item:not(.large)",
           ),
         ].map((element) => ({
           domain: "cnet",
           domain_icon_url: document.querySelector(
-            "link[rel='apple-touch-icon']"
+            "link[rel='apple-touch-icon']",
           )?.href,
           title: element.querySelector("a h3")?.innerText,
           content_url: element.querySelector("a")?.href,
@@ -130,9 +136,7 @@ async function cnet(io) {
           published_at:
             element.querySelector(".assetInfo .timeAgo")?.textContent ||
             "today",
-          images_url:
-            element.querySelector("figure img")?.src ||
-            "https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/v1488570589/cauf2hzuag3akduqzixm.png",
+
           summary: element.querySelector("a p")?.innerText,
           body: element.querySelector("a p")?.innerText,
           content_type: "news",

@@ -42,7 +42,7 @@ exports.fivePmJob = async (io) => {
 };
 
 exports.sixPmJob = async (io) => {
-  let job = schedule.scheduleJob("10 06 * * *", function () {
+  let job = schedule.scheduleJob("18 20 * * *", function () {
     //console.log("10 tar job");
     cnet(io);
     foxnews(io);
@@ -50,9 +50,9 @@ exports.sixPmJob = async (io) => {
 };
 
 exports.sevenPmJob = async (io) => {
-  let job = schedule.scheduleJob("10 07 * * *", function () {
+  let job = schedule.scheduleJob("22 23 * * *", function () {
     //console.log("10 tar job");
-    bbc(io);
+    //bbc(io);
     nypost(io);
     //foxnews(io);
   });

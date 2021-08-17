@@ -54,7 +54,7 @@ async function nypost(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -117,7 +117,7 @@ async function nypost(io) {
             const article = {
               domain: "nypost",
               domain_icon_url: document.querySelector(
-                "link[rel='shortcut icon']"
+                "link[rel='shortcut icon']",
               )?.href,
               title: element.querySelector("h3")?.innerText,
               content_url: element.querySelector("h3 a")?.href,
@@ -137,7 +137,7 @@ async function nypost(io) {
             };
             element.remove();
             return article;
-          }
+          },
         );
       });
       if (results.length === 0) {

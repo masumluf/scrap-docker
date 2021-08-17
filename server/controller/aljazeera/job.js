@@ -27,7 +27,7 @@ async function aljazeera(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -40,12 +40,14 @@ async function aljazeera(io) {
         });
 
         console.log("collecting data from next tab..");
+
         const singleData = await newTab.evaluate(async () => {
           try {
             return {
               author_name:
                 document.querySelector(".article-author-name-item")
                   ?.innerText ?? "aljazeera",
+              images_url: document.querySelectorAll("img")[1].src,
               topic: document.querySelector(".topics > a").innerText,
               reading_time:
                 document.querySelector(".gallery-content")?.innerText?.length ||
@@ -112,9 +114,6 @@ async function aljazeera(io) {
         return [...document.querySelectorAll("article")].map((element) => {
           const regexImg = /www.aljazeera.com/g;
           const imgUrl = element.querySelector("img.gc__image")?.src;
-          const images_url = regexImg.test(imgUrl)
-            ? imgUrl
-            : "https://www.aljazeera.com" + imgUrl;
 
           const article = {
             domain: "aljazeera",
@@ -122,7 +121,7 @@ async function aljazeera(io) {
               .href,
             title: element.querySelector("h3")?.innerText.trim(),
             content_url: element.querySelector("h3 a")?.href,
-            images_url,
+
             summary: element.querySelector(".gc__excerpt")?.innerText.trim(),
             body: element.querySelector(".gc__excerpt")?.innerText.trim(),
             published_at: element.querySelector(".date-simple")?.innerText,

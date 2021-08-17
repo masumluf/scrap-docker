@@ -54,7 +54,7 @@ async function foxnews(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -72,11 +72,14 @@ async function foxnews(io) {
             const body = document
               .querySelector(".article-body")
               ?.innerText.replace(regexBody, " ");
+            const images_url = document.querySelector("Picture img").src;
+            //console.log("Picture....");
             return {
               author_name:
                 document.querySelector(".author-byline a")?.innerText ||
                 "foxnews",
               body: body?.substring(0, 350),
+              images_url,
               summary: body?.substring(0, 150),
               reading_time: body?.length || 400,
             };
@@ -87,6 +90,7 @@ async function foxnews(io) {
 
         result.published_at = sanitizeDate(result.published_at);
         // data storing to db
+        //console.log(singleData);
         q.push({
           ...singleData,
           ...result,
@@ -122,9 +126,7 @@ async function foxnews(io) {
             domain_icon_url: document.querySelector("link[rel='icon']")?.href,
             title: element.querySelector("h4")?.innerText,
             content_url: element.querySelector("h4 a")?.href,
-            images_url:
-              element.querySelector("img")?.src ||
-              "https://pbs.twimg.com/profile_images/918480715158716419/4X8oCbge_400x400.jpg",
+
             topic:
               element.querySelector(".info-header .eyebrow")?.innerText ||
               "News",

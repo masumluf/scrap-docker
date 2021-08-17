@@ -8,8 +8,7 @@ async function startBrowser() {
     browser = await puppeteer.launch({
       // userDataDir: "../cache",
       //executablePath: "/usr/bin/chromium-browser",
-      executablePath:
-        process.env.NODE_ENV === "production" && "/usr/bin/chromium-browser",
+
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
