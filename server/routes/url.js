@@ -106,7 +106,7 @@ router.get("/cbc", cbc);
 router.post("/cbc/old", cbcOld);
 router.get("/letsexpresso", letsexpresso);
 router.post("/letsexpresso/old", letsexpressoOld);
-router.get("/fusionread", fusionRead);
+//router.get("/fusionread", fusionRead);
 router.get("/redditblog", redditblog);
 router.post("/redditblog/old", redditblogOld);
 router.get("/revealnews", revealnews);

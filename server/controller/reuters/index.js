@@ -22,7 +22,7 @@ async function reuters(req, res) {
       async (data) => {
         await addData(data);
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -39,14 +39,17 @@ async function reuters(req, res) {
         console.log("collecting data from next tab..");
         const singleData = await newTab.evaluate(async () => {
           try {
-            const regexBody = /(<([^>]+)>)|\n|\t|\s{2,}|"|'/ig;
-            const body = document.querySelector(".paywall-article")?.innerText.replace(regexBody, " ");
+            const regexBody = /(<([^>]+)>)|\n|\t|\s{2,}|"|'/gi;
+            const body = document
+              .querySelector(".paywall-article")
+              ?.innerText.replace(regexBody, " ");
             return {
               author_name:
-                document.querySelector(".ArticleHeader__author___Q1-tGb")?.innerText ?? "reuters",
+                document.querySelector(".ArticleHeader__author___Q1-tGb")
+                  ?.innerText ?? "reuters",
               published_at: document.querySelector("time span")?.innerText,
               summary: document.querySelector(".paywall-article p")?.innerText,
-              body: body?.substring(0,350),
+              body: body?.substring(0, 350),
               reading_time: body?.length || 400,
             };
           } catch (error) {
@@ -105,9 +108,10 @@ async function reuters(req, res) {
         return [...document.querySelectorAll(".story-card")].map((element) => {
           const article = {
             domain: "reuters",
-            domain_icon_url: document.querySelector("link[rel='shortcut icon']")?.href,
+            domain_icon_url: document.querySelector("link[rel='shortcut icon']")
+              ?.href,
             title:
-              element.querySelector("h6 span:nth-child(2)")?.innerText ??
+              element.querySelector("h6")?.innerText ??
               element.querySelector("h3 span:nth-child(2)")?.innerText,
             content_url: element?.href,
             topic:

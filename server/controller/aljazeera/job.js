@@ -3,6 +3,10 @@ const { scrollPageToBottom } = require("../helper/core");
 const { addData } = require("../authController");
 const { sanitizeDate } = require("../helper/dateSanitize");
 const Queue = require("better-queue");
+const {
+  scrapperWithTagCode,
+  scrapperWithTopic,
+} = require("../helper/dataScrapper");
 let page;
 let count = 0;
 let q = null;
@@ -40,14 +44,12 @@ async function aljazeera(io) {
         });
 
         console.log("collecting data from next tab..");
-
         const singleData = await newTab.evaluate(async () => {
           try {
             return {
               author_name:
                 document.querySelector(".article-author-name-item")
                   ?.innerText ?? "aljazeera",
-              images_url: document.querySelectorAll("img")[1].src,
               topic: document.querySelector(".topics > a").innerText,
               reading_time:
                 document.querySelector(".gallery-content")?.innerText?.length ||
@@ -58,12 +60,22 @@ async function aljazeera(io) {
           }
         });
 
+        const des = await newTab.$eval(
+          "head > meta[name='description']",
+          (element) => element.content,
+        );
+
+        console.log(result.content_url);
+
+        console.log(des);
+
         result.published_at = sanitizeDate(result.published_at);
         // data storing to db
-        q.push({
-          ...result,
-          ...singleData,
-        });
+        // q.push({
+        //   ...result,
+        //   ...singleData,
+        // });
+        //await scrapperWithTopic(result);
         await newTab.waitForTimeout(2000);
         await newTab.close();
       } catch (error) {
@@ -114,6 +126,9 @@ async function aljazeera(io) {
         return [...document.querySelectorAll("article")].map((element) => {
           const regexImg = /www.aljazeera.com/g;
           const imgUrl = element.querySelector("img.gc__image")?.src;
+          const images_url = regexImg.test(imgUrl)
+            ? imgUrl
+            : "https://www.aljazeera.com" + imgUrl;
 
           const article = {
             domain: "aljazeera",
@@ -121,7 +136,7 @@ async function aljazeera(io) {
               .href,
             title: element.querySelector("h3")?.innerText.trim(),
             content_url: element.querySelector("h3 a")?.href,
-
+            images_url,
             summary: element.querySelector(".gc__excerpt")?.innerText.trim(),
             body: element.querySelector(".gc__excerpt")?.innerText.trim(),
             published_at: element.querySelector(".date-simple")?.innerText,

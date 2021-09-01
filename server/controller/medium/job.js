@@ -7,109 +7,6 @@ let page;
 let count = 0;
 let q = null;
 
-let str = [
-  "Art",
-  "Books",
-  "Comics",
-  "Fiction",
-  "Film",
-  "Gaming",
-  "Humor",
-  "Music",
-  "Nonfiction",
-  "Photography",
-  "Podcasts",
-  "Poetry",
-  "TV",
-  "Visual Design",
-  "Culture",
-  "Food",
-  "Language",
-  "Makers",
-  "Outdoors",
-  "Pets",
-  "Philosophy",
-  "Sports",
-  "Style",
-  "Travel",
-  "True Crime",
-  "Accessibility",
-  "Disability",
-  "Equality",
-  "Feminism",
-  "LGBTQIA",
-  "Race",
-  "Addiction",
-  "Coronavirus",
-  "Fitness",
-  "Health",
-  "Mental Health",
-  "Business",
-  "Design",
-  "Economy",
-  "Freelancing",
-  "Leadership",
-  "Marketing",
-  "Media",
-  "Product Management",
-  "Remote Work",
-  "Startups",
-  "UX",
-  "Venture Capital",
-  "Work",
-  "Creativity",
-  "Mindfulness",
-  "Money",
-  "Productivity",
-  "Writing",
-  "Gun Control",
-  "Immigration",
-  "Justice",
-  "Politics",
-  "Android Dev",
-  "Data Science",
-  "iOS Dev",
-  "Javascript",
-  "Machine Learning",
-  "Programming",
-  "Software Engineering",
-  "Biotech",
-  "Climate Change",
-  "Math",
-  "Neuroscience",
-  "Psychology",
-  "Science",
-  "Space",
-  "Astrology",
-  "Beauty",
-  "Family",
-  "Lifestyle",
-  "Parenting",
-  "Relationships",
-  "Self",
-  "Sexuality",
-  "Spirituality",
-  "Basic Income",
-  "Cannabis",
-  "Cities",
-  "Education",
-  "History",
-  "Psychedelics",
-  "Religion",
-  "San Francisco",
-  "Social Media",
-  "Society",
-  "Transportation",
-  "World",
-  "Artificial Intelligence",
-  "Blockchain",
-  "Cryptocurrency",
-  "Cybersecurity",
-  "Digital Life",
-  "Future",
-  "Gadgets",
-];
-
 async function medium(io) {
   const browser = await startBrowser();
   page = await startPage(browser);
@@ -130,7 +27,7 @@ async function medium(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
@@ -178,18 +75,17 @@ async function medium(io) {
 
       io.emit("work-process", { data: "Working..." });
       let results = await page.evaluate(() => {
-        return [...document.querySelectorAll(".aj.dn")]
-          .slice(1, [...document.querySelectorAll(".aj.dn")].length - 1)
+        return [...document.querySelectorAll(".ae.di")]
+          .slice(1)
           .map((element) => {
             let article = {
               domain: "medium",
               domain_icon_url: document.querySelector(
-                "link[rel='apple-touch-icon']"
+                "link[rel='apple-touch-icon']",
               )?.href,
               title: element.querySelector("div")?.querySelector("h2")
                 ?.innerText,
-              content_url: element.querySelector("div").querySelector("h2")
-                ?.parentElement?.href,
+              content_url: element.querySelector("h2")?.parentElement?.href,
               summary: element.querySelector("div").querySelector("h3")
                 ? element.querySelector("div").querySelector("h3")?.innerText
                 : "Nothing Found",

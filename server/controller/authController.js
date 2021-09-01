@@ -240,6 +240,8 @@ exports.addData = async (obj) => {
       meta_tag: obj.tag,
       is_approved: true,
       status: "public",
+      created_at: Date.now(),
+      updated_at: Date.now(),
       reading_time: readTime(obj.reading_time),
       slug: obj.title.toLowerCase().split(" ").join("-"),
     };
@@ -546,4 +548,31 @@ exports.calculateHistory = async (_, res) => {
 
 exports.cancelRequest = async (_, res) => {
   return res.status(200).json(true);
+};
+
+exports.extractData = async (obj) => {
+  try {
+    let result = await axios({
+      method: "GET",
+      url: `http://api.linkpreview.net/?key=b29ebd2690132ab994edd13ad9e1241b&q=${obj?.content_url}`,
+    });
+
+    console.log({
+      ...obj,
+      title: result?.data?.title,
+      body: result?.data?.description,
+      summary: result?.data?.description,
+      images_url: result?.data?.image,
+    });
+
+    // await addData({
+    //   ...obj,
+    //   title: result?.data?.titel,
+    //   body: result?.data?.description,
+    //   summary: result?.data?.description,
+    //   images_url: result?.data?.image,
+    // });
+  } catch (err) {
+    //console.log(err);
+  }
 };

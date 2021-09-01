@@ -26,7 +26,7 @@ async function gurdian(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
     for (let result of results) {
       const newTab = await startPage(browser);
@@ -40,7 +40,7 @@ async function gurdian(io) {
         try {
           const regexBody = /(<([^>]+)>)|\n|\t|\s{2,}|"|'/gi;
           const body = document.querySelector(
-            ".article-body-commercial-selector.article-body-viewer-selector.dcr-bjn8wh"
+            ".article-body-commercial-selector.article-body-viewer-selector.dcr-bjn8wh",
           )?.textContent;
           return {
             topic:
@@ -116,7 +116,7 @@ async function gurdian(io) {
             const article = {
               domain: "gurdian",
               domain_icon_url: document.querySelector(
-                "link[rel='apple-touch-icon']"
+                "link[rel='apple-touch-icon']",
               )?.href,
               title: element.querySelector(".fc-item__content a")?.innerText,
               content_url: element.querySelector(".fc-item__content a")?.href,
@@ -124,7 +124,7 @@ async function gurdian(io) {
             };
             element.remove();
             return article;
-          }
+          },
         );
       });
       if (results.length === 0) {

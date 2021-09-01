@@ -5,5 +5,8 @@ exports.readTime = (textLength) => {
     let value = Math.ceil(textLength / wordsPerMinute);
     result = Math.floor(value * 60);
   }
+
+  console.log(textLength);
+
   return result;
 };

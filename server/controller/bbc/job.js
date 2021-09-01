@@ -4,13 +4,12 @@ const { addData } = require("../authController");
 const { sanitizeDate } = require("../helper/dateSanitize");
 const Queue = require("better-queue");
 let page;
+let count = 0;
+let q = null;
 
 async function bbc(io) {
-  //let { topicName } = req.body;
-  let count = 0;
   const browser = await startBrowser();
   page = await startPage(browser);
-  //const io = req.app.get("io");
 
   await page.goto("https://www.bbc.com/news/world/us_and_canada", {
     waitUntil: "networkidle2",
@@ -19,89 +18,93 @@ async function bbc(io) {
   await page.waitForTimeout(2000);
 
   async function navigateToNextTab(results) {
-    const q = new Queue(
+    q = new Queue(
       async (data) => {
-        await addData(data);
+        if (await addData(data)) {
+          count = 0;
+        } else {
+          count++;
+        }
       },
       { concurrent: results.length },
     );
-
     for (let result of results) {
       let newTab;
       try {
-        console.log(result);
         newTab = await startPage(browser);
-        if (result?.content_url) {
-          await newTab.goto(result.content_url, {
-            waitUntil: "domcontentloaded",
-            timeout: 5000,
-          });
+        await newTab.goto(result.content_url, {
+          waitUntil: "networkidle2",
+        });
+        await scrollPageToBottom(newTab);
+        await newTab.waitForTimeout(2000);
+        //await newTab.screenshot({ path: "example.png" });
+        console.log("collecting data from next tab..");
+        const singleData = await newTab.evaluate(async () => {
+          try {
+            const regexBody = /(<([^>]+)>)|\n|\t|\s{2,}|"|'/gi;
 
-          console.log("collecting data from next tab..");
-          const singleData = await newTab.evaluate(async () => {
-            try {
-              const body = document.querySelector("article")?.textContent;
-              console.log("find out...");
-              return {
-                topic: "US-Canada",
-                published_at:
-                  document.querySelector("time")?.dateTime || "today",
-                reading_time: body?.length || 400,
-                body: body?.substring(0, 400),
-                images_url: document.querySelector(".ssrcss-1drmwog-Image").src,
-                summary: body?.substring(0, 200),
-              };
-            } catch (error) {
-              console.log(error);
-            }
-          });
+            //console.log(result.content_url);
+            let tag = [
+              ...new Set(
+                [
+                  ...document.querySelectorAll(
+                    ".ssrcss-d7aixc-ClusterItems.e1ihwmse0 li a",
+                  ),
+                ].map((item) => item.innerText),
+              ),
+            ];
 
-          //singleData.published_at = sanitizeDate(singleData.published_at);
-          // data storing to db
-          if (singleData) {
-            q.push({
-              ...singleData,
-              ...result,
-            });
-            await newTab.waitForTimeout(2000);
-            await newTab.close();
-          } else {
-            let obj = {
-              images_url:
-                "https://yt3.ggpht.com/ytc/AKedOLSJf_PYHF9czwJ0c99ARvsOkYLzoUGXSVhvOvlAkoc=s900-c-k-c0x00ffffff-no-rj",
-              topic: "US-Canada",
+            const bodyText = [
+              ...document.querySelectorAll(
+                ".ssrcss-uf6wea-RichTextComponentWrapper",
+              ),
+            ].map((item) => item?.innerText);
+
+            const body = document.querySelector(
+              ".ssrcss-uf6wea-RichTextComponentWrapper p b",
+            )?.innerText;
+
+            return {
+              body,
+              summary: body,
+              topic: "US-CANADA",
+              reading_time: bodyText?.length || 400,
+              title: document.querySelector("h1")?.innerText,
+              images_url: document.querySelector(".ssrcss-1drmwog-Image").src,
+              tag,
+              published_at: document.querySelector("time")?.dateTime || "today",
             };
-            q.push({
-              ...obj,
-              ...result,
-            });
-            await newTab.waitForTimeout(2000);
-            await newTab.close();
+          } catch (error) {
+            console.log(error);
           }
-        } else {
-          await newTab.close();
-          continue;
-        }
-      } catch (error) {
+        });
+
+        result.published_at = sanitizeDate(result.published_at);
+        // data storing to db
+        q.push({
+          ...result,
+          ...singleData,
+        });
+        console.log(singleData);
+        await newTab.waitForTimeout(2000);
         await newTab.close();
-        console.log("navigation error", error);
+      } catch (e) {
+        await newTab.close();
+        console.log("navigation error", e);
       }
     }
   }
 
   async function paginate() {
     try {
-      const nextClick = await page.$(".lx-pagination__controls:nth-child(3) a");
+      const nextClick = await page.$(".qa-pagination-next-page");
       if (nextClick) {
-        count++;
         console.log("pagination found...");
-        console.log(count);
-        await Promise.all([
-          page.click(".lx-pagination__controls:nth-child(3) a"),
-        ]);
-        await page.waitForTimeout(4000);
+
+        await Promise.all([page.click(".qa-pagination-next-page")]);
+        await page.waitForTimeout(2000);
         await scrollPageToBottom(page);
-        await page.waitForTimeout(4000);
+        await page.waitForTimeout(2000);
         await collectData();
       } else {
         console.log("Scrapping finished");
@@ -120,7 +123,16 @@ async function bbc(io) {
   }
 
   async function collectData() {
+    io.emit("work-process", { data: "Working..." });
     try {
+      io.emit("work-process", { data: "Schedule Job Starts..." });
+      if (count > 5) {
+        await page.close();
+        await browser.close();
+        io.emit("work-process", { data: null });
+        console.log("Finished...");
+        return false;
+      }
       console.log("Data collection started");
       let results = await page.evaluate(() => {
         return [
@@ -131,18 +143,11 @@ async function bbc(io) {
             domain_icon_url: document.querySelector(
               "link[rel='apple-touch-icon']",
             )?.href,
-            title: element.querySelector("header h3")?.innerText,
             content_url: element.querySelector("header h3 a")?.href,
-
-            summary: element.querySelector("p.lx-stream-related-story--summary")
-              ?.innerText,
-            body: element.querySelector("p.lx-stream-related-story--summary")
-              ?.innerText,
-            author_name:
-              element.querySelector("p.qa-contributor-name")?.innerText ??
-              "bbc",
             content_type: "news",
           };
+          element.remove();
+          //console.log(element.querySelector("header h3 a")?.href);
           return article;
         });
       });

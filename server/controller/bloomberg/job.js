@@ -3,6 +3,7 @@ const { scrollPageToBottom } = require("../helper/core");
 const { addData } = require("../authController");
 const { sanitizeDate } = require("../helper/dateSanitize");
 const Queue = require("better-queue");
+const { scrapperWithTopic } = require("../helper/dataScrapper");
 
 let page;
 let count = 0;
@@ -10,6 +11,16 @@ let q = null;
 async function bloomberg(io) {
   const browser = await startBrowser();
   page = await startPage(browser);
+
+  await page.setRequestInterception(true);
+
+  page.on("request", (request) => {
+    if (request.resourceType() === "script") {
+      request.abort();
+    } else {
+      request.continue();
+    }
+  });
 
   await page.goto("https://www.bloomberg.com/", {
     waitUntil: "networkidle2",
@@ -26,12 +37,28 @@ async function bloomberg(io) {
           count++;
         }
       },
-      { concurrent: results.length }
+      { concurrent: results.length },
     );
 
     for (let result of results) {
-      q.push(result);
+      //q.push(result);
       // console.log(result);
+      const newTab = await startPage(browser);
+      await newTab.goto(result.content_url, {
+        waitUntil: "domcontentloaded",
+        timeout: 0,
+      });
+      const singleData = await newTab.evaluate(async () => {
+        try {
+          console.log("inside the page");
+        } catch (error) {
+          console.log(error);
+        }
+      });
+      console.log(await page.content());
+      await scrapperWithTopic(result);
+      await newTab.waitForTimeout(2000);
+      await newTab.close();
     }
   }
 
@@ -64,7 +91,7 @@ async function bloomberg(io) {
       let results = await page.evaluate(() => {
         return [
           ...document.querySelectorAll(
-            ".story-package-module__story.mod-story"
+            ".story-package-module__story.mod-story",
           ),
         ]
           .slice(16, 500)
@@ -72,10 +99,10 @@ async function bloomberg(io) {
             const article = {
               domain: "bloomberg",
               domain_icon_url: document.querySelector(
-                "link[rel='shortcut icon']"
+                "link[rel='shortcut icon']",
               )?.href,
               title: element.querySelector(
-                ".story-package-module__story__headline"
+                ".story-package-module__story__headline",
               )?.innerText,
               content_url: element.querySelector("h3 a")?.href,
               images_url:
@@ -86,10 +113,10 @@ async function bloomberg(io) {
                   .querySelector(".story-package-module__story__eyebrow")
                   ?.innerText.trim() ?? "News",
               summary: element.querySelector(
-                ".story-package-module__story__headline"
+                ".story-package-module__story__headline",
               )?.innerText,
               body: element.querySelector(
-                ".story-package-module__story__headline"
+                ".story-package-module__story__headline",
               )?.innerText,
               content_type: "news",
             };
